@@ -23,3 +23,18 @@ include_recipe 'yum-epel'
 include_recipe 'iptables::disabled'
 # Disable SELinux
 include_recipe 'selinux::disabled'
+
+cookbook_file "/etc/sysconfig/dhcpd" do
+  owner "root"
+  group "root"
+  mode "0644"
+  action :create
+end
+
+cookbook_file "/etc/dhcp/dhcpd.conf" do
+  owner "root"
+  group "root"
+  mode "0644"
+  action :create
+end
+
