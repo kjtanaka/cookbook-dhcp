@@ -20,19 +20,26 @@
 # Disable SELinux
 include_recipe 'selinux::disabled'
 
-cookbook_file "/etc/sysconfig/network-scripts/ifcfg-eth1" do
+client_iface = node['dhcp']['client']['network_interface']
+
+template "/etc/sysconfig/network-scripts/ifcfg-#{client_iface}" do
+  source "ifcfg-ethN.erb"
   owner "root"
   group "root"
   mode "0644"
   action :create
   notifies :run, "bash[if_refresh]", :immediately
+  variables(
+    :network_interface => "#{client_iface}"
+  )
 end
 
 bash "if_refresh" do
   user "root"
   code <<-EOH
-  ifdown eth1
-  ifup eth1
+  ifdown #{client_iface}
+  ifup #{client_iface}
   EOH
   action :nothing
 end
+

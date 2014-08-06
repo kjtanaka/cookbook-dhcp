@@ -17,24 +17,46 @@
 # limitations under the License.
 #
 
-# Install EPEL repository
-include_recipe 'yum-epel'
 # Disable iptables
 include_recipe 'iptables::disabled'
 # Disable SELinux
 include_recipe 'selinux::disabled'
 
-cookbook_file "/etc/sysconfig/dhcpd" do
-  owner "root"
-  group "root"
-  mode "0644"
-  action :create
+package "dhcp"
+
+service "dhcpd" do
+  action :stop
 end
 
-cookbook_file "/etc/dhcp/dhcpd.conf" do
+template "/etc/sysconfig/dhcpd" do
+  source "dhcpd.erb"
   owner "root"
   group "root"
   mode "0644"
   action :create
+  variables(
+    :network_interface => node['dhcp']['server']['network_interface']
+  )
+end
+
+template "/etc/dhcp/dhcpd.conf" do
+  source "dhcpd.conf.erb"
+  owner "root"
+  group "root"
+  mode "0644"
+  action :create
+  variables(
+    :domain_name => node['dhcp']['domain_name'],
+    :domain_name_servers => node['dhcp'] ['domain_name_servers'],
+    :subnet => node['dhcp']['subnet'],
+    :netmask => node['dhcp']['netmask'],
+    :range_start => node['dhcp']['range_start'],
+    :range_end => node['dhcp']['range_end'],
+    :routers => node['dhcp']['routers']
+  )
+end
+
+service "dhcpd" do
+  action [:start, :enable]
 end
 
